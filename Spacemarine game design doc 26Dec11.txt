@@ -1,0 +1,121 @@
+/Character system
+/	3 races
+/		human
+/		elf
+/		orc
+/	3 character classes 
+/		warrior
+/			+10% health, +10% strength
+/		mage
+/			-10% health, +30% intelligence
+/		rogue
+/			+20% dexterity
+
+Character attribute system
+/	strength - increases damage
+/	dexterity - increases chances of attack first and hit
+/	intelligence - increases chances of hit and damage for magic attacks
+	bonuses from spells (buy), magic items/weapons (buy/find)
+
+Skill system
+	time-based skill/bonus
+		warrior
+			fury - increase damage for 1 turn, must recharge x turns
+		mage
+			focus - increases hit chance (dex mod) for 1 turn, must recharge x turns
+			shield - reduces damage for 1 turn, must recharge x turns
+			confuse - reduce enemy hit chance (increase dex mod)
+		rogue
+			stealth - free attack first + 2x damage once per encounter
+			evade - increase chance of run away
+		buy new skills?
+
+Movement system
+	NEWS tile-based system
+	or
+	hypercard/storyboard event-based system
+
+Event system
+	Encounters
+/		each move 40% chance of encounter
+		Monster's level ~ player's level
+/	Find loot
+/		each move 10% chance of finding loot
+/		generate loot
+/		add loot to inventory
+
+/Combat system
+/	Roll to see who attacks first
+/		50%+dexterity modifier (playerdex-enemydex)/(playerdex+enemydex)*50%
+/	Attacker rolls to see if hit
+/		50%+dexterity modifier
+/		if magic attack, use intelligence modifier (same calculation as dex mod)
+/	If hit, attacker rolls for damage
+/		depends on weapon
+/		depends on strength modifier
+/		if magic attack, use intelligence modifier (same calculation as dex mod)
+/			(1+((this.strength-enemy.strength)/(this.strength+enemy.strength))*0.5)%
+/			(1+((enemy.strength-this.strength)/(this.strength+enemy.strength))*0.5)%
+/	continue until someone dies or runs away
+/	Run away
+/		30%+dexterity modifier chance of getting away
+/		if fail, enemy gets free attack first
+/	If win
+/		Find loot
+/		Gain XP
+
+/Weapon system
+/	weapon object
+/		min_dmg
+/		dmg_range
+/		type - physical or magic
+/	weapon determines damage
+/	class-specific weapons
+/			warrior
+/				mini-howitzer 8-12
+/			mage
+/				psychic strike 3-6 (magic)
+/				psychic blast 4-8 (magic)
+/			rogue
+/				sniper rifle 3-6 (6-10 with stealth)
+/			all
+/				dagger 1-2 (4-6 with stealth)
+/				sword 3-6
+/				auto-rifle 4-8
+
+Inventory system
+	8 items max inc weapons
+/	Must arm main weapon
+/	medikits
+/	use item
+/	drop item
+/	equip weapon in main hand
+
+/Leveling system
+/	xp gained converts to ap (attribute points) which can be assigned to attributes
+/	xp:ap conversion function (10:1)
+/	xp converts to level which determines level of enemy encountered
+/	xp:level conversion function (10:1)
+
+Social hook
+	?
+	call for support for battles
+	call for rations/medikits
+
+PvP
+	?	
+
+Goal
+	Kill monsters
+	Build up character
+	?
+
+
+User feedback
+can't see enemy
+see how to defeat enemy
+choose enemy to attack or avoid
+attack diversity not rich enough
+object of game
+little tasks
+boss and levels of enemy

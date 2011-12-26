@@ -1,0 +1,560 @@
+<html>
+<head>
+
+</head>
+<script type="text/javascript">
+
+function addoption(selectbox, optionobject)	// add option to a  select object
+{
+	var optn=document.createElement("option");
+	optn.text=optionobject.iname;
+	optn.value=optionobject.iname;
+	selectbox.options.add(optn);
+}
+function enable_char_generator()
+{
+	document.getElementById("generate").disabled=false;
+	document.getElementById("changename").disabled=false;
+	document.getElementById("changerace_h").disabled=false;
+	document.getElementById("changerace_e").disabled=false;
+	document.getElementById("changerace_o").disabled=false;
+	document.getElementById("changeclass_w").disabled=false;
+	document.getElementById("changeclass_p").disabled=false;
+	document.getElementById("changeclass_r").disabled=false;	
+}
+function disable_char_generator()
+{
+	document.getElementById("generate").disabled=true;
+	document.getElementById("changename").disabled=true;
+	document.getElementById("changerace_h").disabled=true;
+	document.getElementById("changerace_e").disabled=true;
+	document.getElementById("changerace_o").disabled=true;
+	document.getElementById("changeclass_w").disabled=true;
+	document.getElementById("changeclass_p").disabled=true;
+	document.getElementById("changeclass_r").disabled=true;
+}
+function newgame()
+{
+	player=new character("", "", "", 0, 0, 0, 0, 0, 0, 1, 0, false, false, "");
+	document.getElementById("playerinfo").innerHTML="";
+	document.getElementById("playerstats").innerHTML="";
+	document.getElementById("inventory").innerHTML="";
+	document.getElementById("status").innerHTML="";
+	document.getElementById("enemystats").innerHTML="";
+	document.getElementById("debug").innerHTML="";
+	document.getElementById("inventory").innerHTML="";	// clear inventory list
+
+	var c=document.getElementById("mycanvas");
+	var cxt=c.getContext("2d");
+	cxt.clearRect(0,0,444,319);
+
+	// enable next, generate and character gen buttons
+	document.getElementById("next").disabled=false;
+	enable_char_generator();
+}
+function xp_to_ap(xp)
+{
+	// substitute with xp to ap function
+	return(xp/10);
+}
+function xp_to_level(xp)
+{
+	// substitute with xp to level function
+	return(Math.floor(xp/10)+1);
+}
+function generateloot()
+{
+	// substitute with loot generating function
+	return(medikit);
+}
+function character(cname, race, cclass, strength, intelligence, dexterity, health, xp, ap, level, kills, encounter, ambushed, mainhand)
+{
+	// character attributes
+	this.cname=cname;
+	this.race=race;
+	this.cclass=cclass;
+	this.strength=strength;
+	this.intelligence=intelligence;
+	this.dexterity=dexterity;
+	this.health=health;
+	this.xp=xp;
+	this.ap=ap;
+	this.level=level;
+	this.kills=kills;
+	this.mainhand=mainhand; // main-hand weapon
+
+	// character inventory
+	this.inventory=[];
+
+	// character states
+	this.encounter=false;
+	this.ambushed=false;
+
+	// character methods
+	this.changename=changename;
+	this.changerace=changerace;
+	this.changeclass=changeclass;
+	this.generate=generate;
+	this.fight=fight;
+	this.runaway=runaway
+	this.nextturn=nextturn
+	this.save=save;
+	this.load=load;
+	this.showstats=showstats;
+	// this.equipmainhand=equipmainhand;
+	this.incrementattribute=incrementattribute;
+	this.use=use;
+	this.drop=drop;
+}
+function changename(newname)
+{
+	this.cname=newname;
+	document.getElementById("playerinfo").innerHTML=this.cname+" the "+this.race+" "+this.cclass;
+}
+function changerace(newrace)
+{
+	this.race=newrace;
+	document.getElementById("playerinfo").innerHTML=this.cname+" the "+this.race+" "+this.cclass;
+}
+function changeclass(newclass)
+{
+	this.cclass=newclass;
+	document.getElementById("playerinfo").innerHTML=this.cname+" the "+this.race+" "+this.cclass;
+}
+function incrementattribute(attribute)
+{
+	if (attribute=="str") this.strength++;
+	if (attribute=="int") this.intelligence++;
+	if (attribute=="dex") this.dexterity++;
+	if (attribute=="hea") this.health++;
+	this.ap-=1;
+	this.showstats();
+}
+function showstats()
+{
+	if (this.cclass!="enemy")
+	{
+		// show player attributes with + buttons
+		document.getElementById("playerstats").innerHTML=
+		"Strength: "+this.strength+"<button type='button' id='incstr' onclick='player.incrementattribute(\"str\")'>+</button><br />"+
+		"Intelligence: "+this.intelligence+"<button type='button' id='incint' onclick='player.incrementattribute(\"int\")'>+</button><br />"+
+		"Dexterity: "+this.dexterity+"<button type='button' id='incdex' onclick='player.incrementattribute(\"dex\")'>+</button><br />"+
+		"Health: "+this.health+"<button type='button' id='inchea' onclick='player.incrementattribute(\"hea\")'>+</button><br />"+
+		"XP: "+this.xp+"<br />"+
+		"AP: "+this.ap+"<br />"+
+		"Level: "+this.level+"<br />"+
+		"Main hand equipped with "+this.mainhand.iname;
+
+		// disable increment buttons unless player has AP to convert
+		if (this.ap < 1)	// convert available xp to attribute points
+		{
+			document.getElementById("incstr").disabled=true;
+			document.getElementById("incint").disabled=true;
+			document.getElementById("incdex").disabled=true;
+			document.getElementById("inchea").disabled=true;
+		}
+	}
+	else
+	{
+		document.getElementById("enemystats").innerHTML="Enemy: Strength: "+this.strength+", Intelligence: "+this.intelligence+", Dexterity: "+this.dexterity+", Health: "+this.health+", XP reward: "+this.xp+", "+this.mainhand.iname;
+	}
+}
+function generate()
+{
+	var mult_s=1, mult_i=1, mult_d=1, mult_h=1
+	// character class bonuses
+	if (this.cclass=="warrior")
+	{
+		mult_s=1.1;	// +10% strength
+		mult_h=1.1;	// +10% health
+		this.mainhand=sword;	// equip main hand
+		// addoption(document.getElementById("equipped"), sword);
+		addoption(document.getElementById("inventory"), sword);
+		this.inventory.push(sword);
+	}
+	if (this.cclass=="mage")	// +30% intelligence, -10% health
+	{
+		mult_i=1.3;
+		mult_h=0.9;
+		this.mainhand=psychicstrike;	// equip main hand
+		// addoption(document.getElementById("equipped"), lightningbolt);
+		addoption(document.getElementById("inventory"), psychicstrike);
+		this.inventory.push(psychicstrike);
+	}
+	if (this.cclass=="rogue")	// +20% dexterity
+	{
+		mult_d=1.2;
+		this.mainhand=dagger;	// equip main hand
+		// addoption(document.getElementById("equipped"), dagger);
+		addoption(document.getElementById("inventory"), dagger);
+		this.inventory.push(dagger);
+	}
+	this.strength=Math.round((10+Math.random()*10)*mult_s);
+	this.intelligence=Math.round((10+Math.random()*10)*mult_i);
+	this.dexterity=Math.round((10+Math.random()*10)*mult_d);
+	this.health=Math.round((10+Math.random()*10)*mult_h);
+
+	if (this.cclass!="enemy")	// equip player
+	{
+		this.ap=3;
+		addoption(document.getElementById("inventory"), medikit);
+		this.inventory.push(medikit);
+	}
+
+	if (this.cclass=="enemy")
+	{
+		this.xp=Math.round(Math.random()*10);	// enemy xp kill reward
+		this.mainhand=weapons[Math.floor(Math.random()*7)];	// equip main hand with weapon
+	}
+	
+	this.showstats();
+	// disable generate and character gen buttons
+	disable_char_generator();
+
+	if (this.cclass!="enemy")
+	{
+		var c=document.getElementById("mycanvas");
+		var cxt=c.getContext("2d");
+		var imageobj=new Image();
+		imageobj.onload=function()
+		{
+			cxt.drawImage(imageobj,0,0,444,319);
+		}
+		if (this.race=="human")
+		{
+			if (this.cclass=="warrior") imageobj.src="images/human_warrior.jpeg";
+			if (this.cclass=="mage") imageobj.src="images/human_mage.jpeg";
+			if (this.cclass=="rogue") imageobj.src="images/human_rogue.jpeg";
+		}
+		if (this.race=="elf")
+		{
+			if (this.cclass=="warrior") imageobj.src="images/elf_warrior.jpeg";
+			if (this.cclass=="mage") imageobj.src="images/elf_mage.jpeg";
+			if (this.cclass=="rogue") imageobj.src="images/elf_rogue.jpeg";
+		}
+		if (this.race=="orc")
+		{
+			if (this.cclass=="warrior") imageobj.src="images/orc_warrior.jpeg";
+			if (this.cclass=="mage") imageobj.src="images/orc_mage.jpeg";
+			if (this.cclass=="rogue") imageobj.src="images/orc_rogue.jpeg";
+		}
+	}
+}
+function fight()
+{
+	var attack_first=false, hit=false, damage=0; status_string="";
+	var dex_mod=((this.dexterity-enemy.dexterity)/(this.dexterity+enemy.dexterity))*0.5;	// dexterity modifier
+	var str_mod=1+((this.strength-enemy.strength)/(this.strength+enemy.strength))*0.5;	// strength modifier
+	var int_mod=((this.intelligence-enemy.intelligence)/(this.intelligence+enemy.intelligence))*0.5;	// intelligence modifier
+
+	if (this.encounter)	// enable if encounter enemy
+	{
+		if (this.health>0)	// check if player is not dead
+		{
+			attack_first=(Math.random()<=0.5+dex_mod) ? true : false;
+			if (this.ambushed) attack_first=false;
+
+			if (attack_first)
+			{
+				status_string="You attack first.";
+				if (this.mainhand.atype=="magic")
+				{
+					hit=(Math.random()<=0.5+int_mod) ? true : false;
+					debug2_string="player magic attack! hit chance "+(0.5+int_mod);	//magic attack debug
+				}
+				else
+				{
+					hit=(Math.random()<=0.5+dex_mod) ? true : false;
+					debug2_string="player physical attack! hit chance "+(0.5+dex_mod);	//physical attack debug
+				}
+				if (hit)
+				{
+					status_string+=" You hit with "+this.mainhand.iname+" and caused ";
+					if (this.mainhand.atype=="magic")
+					{
+						damage=Math.round(this.mainhand.min_dmg+(Math.random()*this.mainhand.dmg_range)*(1+int_mod));
+						debug2_string+=" player magic damage! dmg bonus "+(1+int_mod);	//magic attack debug
+					}
+					else
+					{
+						damage=Math.round(this.mainhand.min_dmg+(Math.random()*this.mainhand.dmg_range)*str_mod);	// damage depends on weapon and str_mod
+						debug2_string+=" player physical damage! dmg bonus "+str_mod;	//physical attack debug
+					}
+					status_string+=damage+" damage.";
+					enemy.health-=damage;	// damage to enemy
+					if (enemy.health<=0)	// check if enemy is dead
+					{
+						status_string+=" You killed Kenny!";
+						this.encounter=false;	// end encounter
+						document.getElementById("next").disabled=false;	// enable next button
+						// rewards
+						this.xp+=enemy.xp;
+						this.ap+=xp_to_ap(enemy.xp);
+						this.level=xp_to_level(this.xp);
+						this.kills++;
+						// find loot (enemy's weapon)
+						addoption(document.getElementById("inventory"), enemy.mainhand);
+						this.inventory.push(enemy.mainhand);
+						status_string+=" You found "+this.inventory[this.inventory.length-1].iname+". Total loot: "+this.inventory.length;
+					}
+				}
+				else
+				{
+					status_string+=" You missed.";
+				}
+			}
+			else
+			{
+				status_string="Enemy attacks first.";
+				if (enemy.mainhand.atype=="magic")
+				{
+					hit=(Math.random()<=0.5-int_mod) ? true : false;
+					debug2_string="enemy magic attack! hit chance "+(0.5-int_mod);	//magic attack debug
+				}
+				else
+				{
+					hit=(Math.random()<=0.5-dex_mod) ? true : false;
+					debug2_string="enemy physical attack! hit chance "+(0.5-dex_mod);	//physical attack debug
+				}
+				if (hit)
+				{
+					status_string+=" Enemy hit with "+enemy.mainhand.iname+" and caused ";
+					if (enemy.mainhand.atype=="magic")
+					{
+						damage=Math.round(enemy.mainhand.min_dmg+(Math.random()*enemy.mainhand.dmg_range)*(1-int_mod));
+						
+						debug2_string+=" enemy magic damage! dmg bonus "+(1-int_mod);	//magic attack 
+					}
+					else
+					{
+						damage=Math.round(enemy.mainhand.min_dmg+(Math.random()*enemy.mainhand.dmg_range)*(2-str_mod));	// damage depends on weapon and inverse of player str_mod
+						debug2_string+=" enemy physical damage! dmg bonus "+(2-str_mod);	//physical attack debug
+					}
+					status_string+=damage+" damage.";
+					this.health-=damage
+					if (this.health<=0) status_string+=" You died.";	// check if player is dead
+				}
+				else
+				{
+					status_string+=" Enemy missed.";
+				}
+			}
+			document.getElementById("status").innerHTML=status_string;
+			this.showstats();
+			enemy.showstats();
+			this.ambushed=false;
+		}
+		else
+		{
+			document.getElementById("status").innerHTML="You died.";
+		}
+		debug_string="Dexterity mod = "+Math.round(dex_mod*100)+"% increased chance of hit<br />"+"Intelligence mod = "+Math.round(int_mod*100)+"% increased chance of hit<br />"+"Player strength mod = "+Math.round(str_mod*100)+"% damage<br />"+"Enemy strength mod = "+Math.round((2-str_mod)*100)+"% damage<br />"+"Player intelligence damage mod = "+Math.round((1+int_mod)*100)+"% damage<br />"+"Enemy intelligence damage mod = "+Math.round((1-int_mod)*100)+"% damage";
+		document.getElementById("debug").innerHTML=debug_string;
+		document.getElementById("debug2").innerHTML=debug2_string;
+	}
+	else
+	{
+		document.getElementById("status").innerHTML="Nothing to fight.";
+	}
+}
+function runaway()
+{
+	var run_away=false; status_string="";
+	var dex_mod=((this.dexterity-enemy.dexterity)/(this.dexterity+enemy.dexterity))*0.5;	// dexterity modifier
+
+	if (this.encounter)	// enable if encounter enemy
+	{
+		run_away=(Math.random()<=0.3+dex_mod) ? true : false
+
+		if ((run_away) && !this.ambushed)
+		{
+			this.encounter=false;
+			document.getElementById("next").disabled=false;	// enable next button
+			status_string="You ran away."
+		}
+		else
+		{
+			status_string="You couldn't get away."
+			this.ambushed=true;	// enemy gets free attack first
+		}
+	}
+	else status_string="Nothing to run from."
+	document.getElementById("status").innerHTML=status_string;
+}
+function save()
+{
+	localStorage.savegame=JSON.stringify(this);
+	document.getElementById("status").innerHTML="Game saved";
+}
+function load()
+{
+	var loadgame=JSON.parse(localStorage.savegame);
+	var i;
+
+	this.cname=loadgame.cname;
+	this.race=loadgame.race;
+	this.cclass=loadgame.cclass;
+	this.strength=loadgame.strength;
+	this.intelligence=loadgame.intelligence;
+	this.dexterity=loadgame.dexterity;
+	this.health=loadgame.health;
+	this.xp=loadgame.xp;
+	this.ap=loadgame.ap;
+	this.level=loadgame.level;
+	this.mainhand=loadgame.mainhand;
+	this.inventory=loadgame.inventory;
+	// need to reload  inventory select list
+	document.getElementById("inventory").innerHTML="";	// clear inventory list
+	for (i=0; i<this.inventory.length; i++)
+	{
+		addoption(document.getElementById("inventory"), this.inventory[i]);
+	}
+
+	document.getElementById("status").innerHTML="Saved game loaded";
+	document.getElementById("playerinfo").innerHTML=this.cname+" the "+this.race+" "+this.cclass;
+	this.showstats();
+
+	// disable generate and character gen buttons
+	disable_char_generator();
+}
+function nextturn()	// placeholder for progressing game turns
+{
+	var nextevent;
+	var foundloot;
+
+	// clear enemy stats and debug  displays
+	document.getElementById("enemystats").innerHTML="";
+	document.getElementById("debug").innerHTML="";
+	document.getElementById("debug2").innerHTML="";
+
+	nextevent=Math.random();
+
+	if (nextevent<=0.5)	// nothing
+	{
+		document.getElementById("status").innerHTML="Nothing happened."
+	}
+	if (nextevent>0.5 && nextevent<=0.6)	// loot
+	{
+		// generate loot
+		foundloot=generateloot();
+		// add loot to inventory
+		addoption(document.getElementById("inventory"), foundloot);
+		this.inventory.push(foundloot);
+		document.getElementById("status").innerHTML="Found loot!"+" You found "+this.inventory[this.inventory.length-1].iname+". Total loot: "+this.inventory.length;
+	}
+	if (nextevent>0.6)	// encounter
+	{
+		document.getElementById("status").innerHTML="Encounter!"
+		this.encounter=true;
+		enemy.generate();
+		document.getElementById("next").disabled=true;	// disable next button until enemy killed or player runs away
+	}
+}
+function use(x)
+{
+	var i=0, j=0;
+	while (this.inventory[i].iname!=x) i++	// identify the inventory object selected
+	if (this.inventory[i].iname=="Medikit")
+	{
+		this.health+=10
+		this.inventory.splice(i,1);
+		document.getElementById("inventory").options[i]=null;
+		this.showstats();
+	}
+
+	while (weapons[j].iname!=x) j++	// check if inventory object selected is a weapon
+	if (j<weapons.length)
+	{
+		if ((weapons[j].iclass==this.cclass) || (weapons[j].iclass=="all"))	// check weapon class
+		{
+			this.mainhand=weapons[j];
+			this.showstats();
+		}
+		else document.getElementById("status").innerHTML="You can't use a "+weapons[j].iclass+"-class weapon.";
+	}
+}
+function drop(x)
+{
+	var i=0;
+	while (this.inventory[i].iname!=x) i++
+	this.inventory.splice(i,1);
+	document.getElementById("inventory").options[i]=null;
+	this.showstats();
+}
+function weapon(iname, min_dmg, max_dmg, atype, iclass)
+{
+	this.iname=iname; // item name
+	this.min_dmg=min_dmg;
+	this.max_dmg=max_dmg;
+	this.dmg_range=max_dmg-min_dmg;
+	this.atype=atype; // attack type, i.e. physical or magic
+	this.iclass=iclass; // item class, i.e. usable by which character class(es)
+}
+function loot(iname)
+{
+	this.iname=iname;
+}
+
+// initialise weapons and weapon array
+var dagger=new weapon("Dagger", 1, 2, "physical", "all");
+var sword=new weapon("Sword", 3, 6, "physical", "all");
+var sniperrifle=new weapon("Sniper rifle", 3, 6, "physical", "rogue");
+var psychicstrike=new weapon("Psychic strike", 3, 6, "magic", "mage");
+var psychicblast=new weapon("Psychic blast", 4, 8, "magic", "mage");
+var autorifle=new weapon("Auto-rifle", 4, 8, "physical", "all");
+var minihowitzer=new weapon("Mini-howitzer", 8, 12, "physical", "warrior");
+var weapons=[dagger, sword, sniperrifle, psychicstrike, psychicblast, autorifle, minihowitzer];
+
+// initialise loot
+var medikit=new loot("Medikit");
+
+// initialise characters
+var player=new character("", "", "", 0, 0, 0, 0, 0, 0, 1, 0, false, false, "");
+var enemy=new character("enemy", "", "enemy", 0, 0, 0, 0, 0);	// enemy defined by cclass=enemy
+
+</script>
+<body>
+
+<p>Please name your character <input type="text" id="charname">
+<button type="button" id="changename" onclick="player.changename(charname.value)">Set name</button>
+</p>
+
+<p>Please choose your race
+<button type="button" id="changerace_h" onclick="player.changerace('human')">Human</button>
+<button type="button" id="changerace_e" onclick="player.changerace('elf')">Elf</button>
+<button type="button" id="changerace_o" onclick="player.changerace('orc')">Orc</button>
+</p>
+
+<p>Please choose your class
+<button type="button" id="changeclass_w" onclick="player.changeclass('warrior')">Warrior</button>
+<button type="button" id="changeclass_p" onclick="player.changeclass('mage')">Mage</button>
+<button type="button" id="changeclass_r" onclick="player.changeclass('rogue')">Rogue</button>
+</p>
+
+<p>Generate character
+<button type="button" id="generate" onclick="player.generate()">Generate</button>
+<p>
+
+<p id="playerinfo"></p>
+<p id="playerstats"></p>
+<p>Inventory <select id="inventory"></select>
+<button type="button" onclick="player.use(inventory.value)">Use</button>
+<button type="button" onclick="player.drop(inventory.value)">Drop</button>
+</p>
+
+<button type="button" id="next" onclick="player.nextturn()">Next</button>
+<button type="button" onclick="player.fight()">Fight</button>
+<button type="button" onclick="player.runaway()">Run away</button>
+<button type="button" onclick="player.save()">Save</button>
+<button type="button" onclick="player.load()">Load</button>
+<button type="button" onclick="newgame()">New game</button>
+
+<p id="status"></p>
+<p id="enemystats"></p>
+<p id="debug2"></p>
+<p id="debug"></p>
+
+<canvas id="mycanvas" width="444" height="319"></canvas>
+
+</body>
+</html>
