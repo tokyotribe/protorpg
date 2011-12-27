@@ -47,6 +47,7 @@ function newgame()
 	document.getElementById("status").innerHTML="";
 	document.getElementById("enemystats").innerHTML="";
 	document.getElementById("debug").innerHTML="";
+	document.getElementById("debug2").innerHTML="";
 	document.getElementById("inventory").innerHTML="";	// clear inventory list
 
 	var c=document.getElementById("mycanvas");
@@ -146,7 +147,7 @@ function showstats()
 		"Dexterity: "+this.dexterity+"<button type='button' id='incdex' onclick='player.incrementattribute(\"dex\")'>+</button><br />"+
 		"Health: "+this.health+"<button type='button' id='inchea' onclick='player.incrementattribute(\"hea\")'>+</button><br />"+
 		"XP: "+this.xp+"<br />"+
-		"AP: "+this.ap+"<br />"+
+		"AP: "+Math.round(this.ap*10)/10+"<br />"+
 		"Level: "+this.level+"<br />"+
 		"Main hand equipped with "+this.mainhand.iname;
 
@@ -173,7 +174,6 @@ function generate()
 		mult_s=1.1;	// +10% strength
 		mult_h=1.1;	// +10% health
 		this.mainhand=sword;	// equip main hand
-		// addoption(document.getElementById("equipped"), sword);
 		addoption(document.getElementById("inventory"), sword);
 		this.inventory.push(sword);
 	}
@@ -182,7 +182,6 @@ function generate()
 		mult_i=1.3;
 		mult_h=0.9;
 		this.mainhand=psychicstrike;	// equip main hand
-		// addoption(document.getElementById("equipped"), lightningbolt);
 		addoption(document.getElementById("inventory"), psychicstrike);
 		this.inventory.push(psychicstrike);
 	}
@@ -190,24 +189,31 @@ function generate()
 	{
 		mult_d=1.2;
 		this.mainhand=dagger;	// equip main hand
-		// addoption(document.getElementById("equipped"), dagger);
 		addoption(document.getElementById("inventory"), dagger);
 		this.inventory.push(dagger);
 	}
-	this.strength=Math.round((10+Math.random()*10)*mult_s);
-	this.intelligence=Math.round((10+Math.random()*10)*mult_i);
-	this.dexterity=Math.round((10+Math.random()*10)*mult_d);
-	this.health=Math.round((10+Math.random()*10)*mult_h);
 
-	if (this.cclass!="enemy")	// equip player
+	if (this.cclass!="enemy")
 	{
-		this.ap=3;
-		addoption(document.getElementById("inventory"), medikit);
+		// generte player attributes
+		this.strength=Math.round((10+Math.random()*10)*mult_s);
+		this.intelligence=Math.round((10+Math.random()*10)*mult_i);
+		this.dexterity=Math.round((10+Math.random()*10)*mult_d);
+		this.health=Math.round((10+Math.random()*10)*mult_h);
+
+		this.ap=3;	// give player 3 ap
+		addoption(document.getElementById("inventory"), medikit);	// give player medikit
 		this.inventory.push(medikit);
 	}
 
 	if (this.cclass=="enemy")
 	{
+		// generate enemy attributes depending on player's level, based on +1 ap per level (spread  over 4 attributes)
+		this.strength=Math.round((10+Math.random()*10+0.25*player.level)*mult_s);
+		this.intelligence=Math.round((10+Math.random()*10+0.25*player.level)*mult_i);
+		this.dexterity=Math.round((10+Math.random()*10+0.25*player.level)*mult_d);
+		this.health=Math.round((10+Math.random()*10+0.25*player.level)*mult_h);
+
 		this.xp=Math.round(Math.random()*10);	// enemy xp kill reward
 		this.mainhand=weapons[Math.floor(Math.random()*7)];	// equip main hand with weapon
 	}
@@ -298,9 +304,15 @@ function fight()
 						this.level=xp_to_level(this.xp);
 						this.kills++;
 						// find loot (enemy's weapon)
-						addoption(document.getElementById("inventory"), enemy.mainhand);
-						this.inventory.push(enemy.mainhand);
-						status_string+=" You found "+this.inventory[this.inventory.length-1].iname+". Total loot: "+this.inventory.length;
+						status_string+=" You found "+enemy.mainhand.iname;
+						if (this.inventory.length<8)
+						{
+							addoption(document.getElementById("inventory"), enemy.mainhand);
+							this.inventory.push(enemy.mainhand);
+						}
+						else status_string+= ". But you can't carry any more items";
+						status_string+=". Total loot: "+this.inventory.length;
+						// status_string+=" You found "+this.inventory[this.inventory.length-1].iname+". Total loot: "+this.inventory.length;
 					}
 				}
 				else
@@ -442,10 +454,18 @@ function nextturn()	// placeholder for progressing game turns
 	{
 		// generate loot
 		foundloot=generateloot();
+
 		// add loot to inventory
-		addoption(document.getElementById("inventory"), foundloot);
-		this.inventory.push(foundloot);
-		document.getElementById("status").innerHTML="Found loot!"+" You found "+this.inventory[this.inventory.length-1].iname+". Total loot: "+this.inventory.length;
+		status_string="Found loot! You found "+foundloot.iname;
+		if (this.inventory.length<8)
+		{
+			addoption(document.getElementById("inventory"), foundloot);
+			this.inventory.push(foundloot);
+		}
+		else status_string+= ". But you can't carry any more items";
+		status_string+=". Total loot: "+this.inventory.length;
+		document.getElementById("status").innerHTML=status_string;	
+		// document.getElementById("status").innerHTML="Found loot!"+" You found "+this.inventory[this.inventory.length-1].iname+". Total loot: "+this.inventory.length;
 	}
 	if (nextevent>0.6)	// encounter
 	{

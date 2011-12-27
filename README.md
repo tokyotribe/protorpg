@@ -19,6 +19,8 @@ protoRPG is a JavaScript library for building role-playing games containing obje
 3. Event system
 	- Encounters
 		- each move 40% chance of encounter
+		- generate enemy
+		- enemy's attributes depend on player's level
 	- Find loot
 		- each move 10% chance of finding loot
 		- generate loot
@@ -65,6 +67,7 @@ protoRPG is a JavaScript library for building role-playing games containing obje
 			- auto-rifle 4-8
 
 6. Inventory system
+	- 8 items max
 	- Must arm main weapon
 	- medikits
 	- use item
