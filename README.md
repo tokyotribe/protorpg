@@ -45,16 +45,7 @@ protoRPG is a JavaScript library for building role-playing games containing obje
               - integrate card system into event system
               		- next button progresses through card array using next card#
               		- process card based on card type
-
-X. Event system (deprecated in favour of adventure script card system)
-	- Encounters
-		- each move 40% chance of encounter
-		- generate enemy
-		- enemy's attributes depend on player's level
-	- Find loot
-		- each move 10% chance of finding loot
-		- generate loot
-		- add loot to inventory
+              	- old event system deprecated in favour of adventure script card system
 
 4. Combat system
 	- Roll to see who attacks first
