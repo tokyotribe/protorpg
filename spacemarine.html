@@ -5,7 +5,6 @@ Open-sourced on 26 Dec 2011
 -->
 <html>
 <head>
-
 </head>
 <script type="text/javascript">
 
@@ -49,14 +48,19 @@ function newgame()
 	document.getElementById("debug").innerHTML="";
 	document.getElementById("debug2").innerHTML="";
 	document.getElementById("inventory").innerHTML="";	// clear inventory list
+	card_idx=0;
 
 	var c=document.getElementById("mycanvas");
 	var cxt=c.getContext("2d");
 	cxt.clearRect(0,0,444,319);
 
 	// enable next, generate and character gen buttons
-	document.getElementById("next").disabled=false;
+	// document.getElementById("next").disabled=false;
+	document.getElementById("nextcard").disabled=false;
 	enable_char_generator();
+
+	document.getElementById("choose").disabled=true;	// disable choose button
+	document.getElementById("choices").style.display="none";	// hide choices element (dropdown+button)
 }
 function xp_to_ap(xp)
 {
@@ -102,12 +106,12 @@ function character(cname, race, cclass, strength, intelligence, dexterity, healt
 	this.changeclass=changeclass;
 	this.generate=generate;
 	this.fight=fight;
-	this.runaway=runaway
-	this.nextturn=nextturn
+	this.runaway=runaway;
+	this.nextturn=nextturn;
+	this.nextcard=nextcard;
 	this.save=save;
 	this.load=load;
 	this.showstats=showstats;
-	// this.equipmainhand=equipmainhand;
 	this.incrementattribute=incrementattribute;
 	this.use=use;
 	this.drop=drop;
@@ -297,7 +301,8 @@ function fight()
 					{
 						status_string+=" You killed Kenny!";
 						this.encounter=false;	// end encounter
-						document.getElementById("next").disabled=false;	// enable next button
+						// document.getElementById("next").disabled=false;	// enable next button
+						document.getElementById("nextcard").disabled=false;	// enable next card button
 						// rewards
 						this.xp+=enemy.xp;
 						this.ap+=xp_to_ap(enemy.xp);
@@ -386,7 +391,8 @@ function runaway()
 		if ((run_away) && !this.ambushed)
 		{
 			this.encounter=false;
-			document.getElementById("next").disabled=false;	// enable next button
+			// document.getElementById("next").disabled=false;	// enable next button
+			document.getElementById("nextcard").disabled=false;	// enable next card button
 			status_string="You ran away."
 		}
 		else
@@ -434,7 +440,7 @@ function load()
 	// disable generate and character gen buttons
 	disable_char_generator();
 }
-function nextturn()	// placeholder for progressing game turns
+function nextturn()	// placeholder for progressing game turns - deprecated
 {
 	var nextevent;
 	var foundloot;
@@ -472,8 +478,88 @@ function nextturn()	// placeholder for progressing game turns
 		document.getElementById("status").innerHTML="Encounter!"
 		this.encounter=true;
 		enemy.generate();
-		document.getElementById("next").disabled=true;	// disable next button until enemy killed or player runs away
+		// document.getElementById("next").disabled=true;	// disable next button until enemy killed or player runs away
 	}
+}
+function addchoice(selectbox, choice_text, choice_value)	// add option to a  select object
+{
+	var optn=document.createElement("option");
+	optn.text=choice_text;
+	optn.value=choice_value;
+	selectbox.options.add(optn);
+}
+function nextcard()	// adventure card processor
+{
+	var card_now;
+	var random_event;
+	var key;
+
+	card_now=JSON.parse(JSON.stringify(cards[card_idx]));	// clone array element to assign variable instead of assigning reference
+
+	status_string="card #"+card_idx+", "+card_now.ctype+": ";
+
+	if (card_now.ctype=="random")
+	{
+		// randomly assign card as story, encounter or loot
+		random_event=Math.random();
+		if (random_event<=0.5) card_now.ctype="story";
+		if (random_event>0.5 && random_event<=0.6) card_now.ctype="loot";
+		if (random_event>0.6) card_now.ctype="encounter";
+	}
+	if (card_now.ctype=="story")
+	{
+		// show story text
+		if (card_now.ccontent==null) card_now.ccontent="Nothing happened.";	// random story card if card content is null
+		status_string+=card_now.ccontent;
+		if (typeof card_now.nextcard_idx != "number")	// check if this is a choice card
+		{
+			// render choice UI
+			document.getElementById("choices").style.display="inline";	// show choices element (dropdown+button)
+			document.getElementById("choose").disabled=false;	// enable choose button
+			document.getElementById("choice").innerHTML="";	// clear choice dropdown
+			for (key in card_now.nextcard_idx)	// add choices to choice dropdown
+			{
+				addchoice(document.getElementById("choice"), key, card_now.nextcard_idx[key]);
+			}
+			//  card_idx is assigned (outside of this function) based on selected choice once player chooses from the choice dropdown
+		}
+		else card_idx=card_now.nextcard_idx	// non-choice card, progress linearly
+	}
+	if (card_now.ctype=="encounter")
+	{
+		status_string+="Encounter!";
+		this.encounter=true;
+		if (card_now.ccontent==null) enemy.generate();	// generate random encounter if card content is null
+		else
+		{
+			enemy=card_now.ccontent;
+			enemy.showstats();
+		}
+		document.getElementById("nextcard").disabled=true;	// disable next button until enemy killed or player runs away
+		card_idx=card_now.nextcard_idx
+	}
+	if (card_now.ctype=="loot")
+	{
+		if (card_now.ccontent==null) card_now.ccontent=generateloot();	// generate random loot if card content is null
+		foundloot=card_now.ccontent;
+		// add loot to inventory
+		status_string+="Found loot! You found "+foundloot.iname;
+		if (this.inventory.length<8)
+		{
+			addoption(document.getElementById("inventory"), foundloot);
+			this.inventory.push(foundloot);
+		}
+		else status_string+= ". But you can't carry any more items";
+		status_string+=". Total loot: "+this.inventory.length;
+		card_idx=card_now.nextcard_idx
+	}
+	if (card_now.ctype=="end")
+	{
+		// end of adventure
+		status_string+="The end."
+		document.getElementById("nextcard").disabled=true;	// disable next button
+	}
+	document.getElementById("status").innerHTML=status_string;	
 }
 function use(x)
 {
@@ -486,7 +572,6 @@ function use(x)
 		document.getElementById("inventory").options[i]=null;
 		this.showstats();
 	}
-
 	while (weapons[j].iname!=x) j++	// check if inventory object selected is a weapon
 	if (j<weapons.length)
 	{
@@ -519,6 +604,20 @@ function loot(iname)
 {
 	this.iname=iname;
 }
+function card(ctype, ccontent, nextcard_idx)	// adventure script card object
+{
+	this.ctype=ctype;	// card type (story, encounter, loot or random)
+	this.ccontent=ccontent;	// card content
+	this.nextcard_idx=nextcard_idx;	// next card
+}
+function choose(x)
+{
+	card_idx=x;
+	document.getElementById("choice").innerHTML="";	// clear choice dropdown once player has chosen
+	document.getElementById("choose").disabled=true;	// disable choose button once player has chosen
+	document.getElementById("choices").style.display="none";	// hide choices element (dropdown+button) once player has chosen
+	player.nextcard();	// advance to next card based on choice
+}
 
 // initialise weapons and weapon array
 var dagger=new weapon("Dagger", 1, 2, "physical", "all");
@@ -537,7 +636,17 @@ var medikit=new loot("Medikit");
 var player=new character("", "", "", 0, 0, 0, 0, 0, 0, 1, 0, false, false, "");
 var enemy=new character("enemy", "", "enemy", 0, 0, 0, 0, 0);	// enemy defined by cclass=enemy
 
+var boss=new character("Boss", "", "enemy", 30, 30, 30, 30, 20);	// boss enemy
+boss.mainhand=autorifle;
+
+// initialise adventure cards
+var card_idx=0;
+var cards=[];
+
 </script>
+<!-- load adventure script -->
+<script src="sample_adventure_script.js"></script>
+<!-- <script src="random_adventure.js"></script> -->
 <body>
 
 <p>Please name your character <input type="text" id="charname">
@@ -567,7 +676,8 @@ var enemy=new character("enemy", "", "enemy", 0, 0, 0, 0, 0);	// enemy defined b
 <button type="button" onclick="player.drop(inventory.value)">Drop</button>
 </p>
 
-<button type="button" id="next" onclick="player.nextturn()">Next</button>
+<button type="button" id="nextcard" onclick="player.nextcard()">Next</button>
+<!-- <button type="button" id="next" onclick="player.nextturn()">Next</button> -->
 <button type="button" onclick="player.fight()">Fight</button>
 <button type="button" onclick="player.runaway()">Run away</button>
 <button type="button" onclick="player.save()">Save</button>
@@ -575,6 +685,10 @@ var enemy=new character("enemy", "", "enemy", 0, 0, 0, 0, 0);	// enemy defined b
 <button type="button" onclick="newgame()">New game</button>
 
 <p id="status"></p>
+<!-- initially hide choices element (dropdown+button) -->
+<p id="choices" style="display : none">Choices <select id="choice"></select>
+<button type="button" id="choose" onclick="choose(choice.value)">Choose</button>
+</p>
 <p id="enemystats"></p>
 <p id="debug2"></p>
 <p id="debug"></p>
