@@ -29,7 +29,6 @@ protoRPG is a JavaScript library for building role-playing games containing obje
 					- random enemy
 						- generate enemy
 						- enemy's attributes depend on player's level
-
 				- [loot]
 					- pre-defined loot, or
 					- random loot
@@ -41,11 +40,11 @@ protoRPG is a JavaScript library for building role-playing games containing obje
 					- 40% chance of encounter
 			- [card content] e.g. story text, pre-defined loot, pre-defined/boss enemy or null
 			- [next card#]
-                		- choice functionality baked into story cards using branching syntax for next card# (see sample_adventure.js for syntax explanation)
-              - integrate card system into event system
-              		- next button progresses through card array using next card#
-              		- process card based on card type
-              	- old event system deprecated in favour of adventure script card system
+			- choice functionality baked into story cards using branching syntax for next card# (see sample_adventure.js for syntax explanation)
+	- integrate card system into event system
+		- next button progresses through card array using next card#
+		- process card based on card type
+	- old event system deprecated in favour of adventure script card system
 
 4. Combat system
 	- Roll to see who attacks first
