@@ -1,4 +1,5 @@
-// Sample adventure script card deck
+// Sample adventure script
+
 // Scripted as individual card objects in cards array starting from [0]
 // Scripting syntax:
 // cards[x]=new card ("card_type", "card_content", next_card)
@@ -9,6 +10,12 @@
 // (if null, adventure card processor will assign appropriate random content depending on card_type)
 // next_card=card number of next card or set of choices and corrensponding card numbers
 // choices syntax: { "option a" : card number for option a, "option b" : card number for option b }
+
+// pre-defined boss enemy
+
+var boss=new character("Boss", "", "enemy", 30, 30, 30, 30, 20); boss.mainhand=autorifle;
+
+// adventure script card deck
 
 cards[0]=new card("story", "This is the beginning of the adventure.", 1);
 cards[1]=new card("loot", dagger, 2);

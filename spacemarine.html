@@ -166,7 +166,7 @@ function showstats()
 	}
 	else
 	{
-		document.getElementById("enemystats").innerHTML="Enemy: Strength: "+this.strength+", Intelligence: "+this.intelligence+", Dexterity: "+this.dexterity+", Health: "+this.health+", XP reward: "+this.xp+", "+this.mainhand.iname;
+		document.getElementById("enemystats").innerHTML="Enemy: "+this.cname+" - Strength: "+this.strength+", Intelligence: "+this.intelligence+", Dexterity: "+this.dexterity+", Health: "+this.health+", XP reward: "+this.xp+", "+this.mainhand.iname;
 	}
 }
 function generate()
@@ -495,6 +495,7 @@ function nextcard()	// adventure card processor
 	var key;
 
 	card_now=JSON.parse(JSON.stringify(cards[card_idx]));	// clone array element to assign variable instead of assigning reference
+	// card_now=cards[card_idx];
 
 	status_string="card #"+card_idx+", "+card_now.ctype+": ";
 
@@ -532,7 +533,18 @@ function nextcard()	// adventure card processor
 		if (card_now.ccontent==null) enemy.generate();	// generate random encounter if card content is null
 		else
 		{
-			enemy=card_now.ccontent;
+			// enemy=card_now.ccontent;
+			// to make this work, create new enemy object with requisite methods, then copy card_now.ccontent appropriate attributes into new enemy object, else card_now.ccontent doesn't have requisite methods
+			enemy=new character();
+			enemy.cname=card_now.ccontent.cname;
+			enemy.race=card_now.ccontent.race;
+			enemy.cclass=card_now.ccontent.cclass;
+			enemy.strength=card_now.ccontent.strength;
+			enemy.intelligence=card_now.ccontent.intelligence;
+			enemy.dexterity=card_now.ccontent.dexterity;
+			enemy.health=card_now.ccontent.health;
+			enemy.xp=card_now.ccontent.xp;
+			enemy.mainhand=card_now.ccontent.mainhand;
 			enemy.showstats();
 		}
 		document.getElementById("nextcard").disabled=true;	// disable next button until enemy killed or player runs away
@@ -627,17 +639,16 @@ var psychicstrike=new weapon("Psychic strike", 3, 6, "magic", "mage");
 var psychicblast=new weapon("Psychic blast", 4, 8, "magic", "mage");
 var autorifle=new weapon("Auto-rifle", 4, 8, "physical", "all");
 var minihowitzer=new weapon("Mini-howitzer", 8, 12, "physical", "warrior");
-var weapons=[dagger, sword, sniperrifle, psychicstrike, psychicblast, autorifle, minihowitzer];
+var shockwave=new weapon("Psychic shockwave", 6, 10, "magic", "mage");
+var supersniperrifle=new weapon("Super-calibre sniper rifle", 7, 9, "physical", "rogue");
+var weapons=[dagger, sword, sniperrifle, psychicstrike, psychicblast, autorifle, minihowitzer, shockwave, supersniperrifle];
 
 // initialise loot
 var medikit=new loot("Medikit");
 
 // initialise characters
 var player=new character("", "", "", 0, 0, 0, 0, 0, 0, 1, 0, false, false, "");
-var enemy=new character("enemy", "", "enemy", 0, 0, 0, 0, 0);	// enemy defined by cclass=enemy
-
-var boss=new character("Boss", "", "enemy", 30, 30, 30, 30, 20);	// boss enemy
-boss.mainhand=autorifle;
+var enemy=new character("Enemy", "", "enemy", 0, 0, 0, 0, 0);	// enemy defined by cclass=enemy
 
 // initialise adventure cards
 var card_idx=0;
@@ -645,7 +656,8 @@ var cards=[];
 
 </script>
 <!-- load adventure script -->
-<script src="sample_adventure_script.js"></script>
+<script src="mission_01_power_core.js"></script>
+<!-- <script src="sample_adventure_script.js"></script> -->
 <!-- <script src="random_adventure.js"></script> -->
 <body>
 
