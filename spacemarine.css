@@ -1,0 +1,8 @@
+#main {
+	float: left;
+}
+#debugpanel {
+	float: right;
+	width: 400px;
+/*	display: none;	/*hide debug panel*/
+}

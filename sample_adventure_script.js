@@ -10,6 +10,9 @@
 // (if null, adventure card processor will assign appropriate random content depending on card_type)
 // next_card=card number of next card or set of choices and corrensponding card numbers
 // choices syntax: { "option a" : card number for option a, "option b" : card number for option b }
+//
+// for pre-defined enemy, syntax:
+// var enemy_name=character("enemy_name", "", "enemy", strength, intelligence, dexterity, health, xp_reward); enemy_name.mainhand=weapon_name;
 
 // pre-defined boss enemy
 

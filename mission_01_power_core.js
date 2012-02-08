@@ -10,6 +10,9 @@
 // (if null, adventure card processor will assign appropriate random content depending on card_type)
 // next_card=card number of next card or set of choices and corrensponding card numbers
 // choices syntax: { "option a" : card number for option a, "option b" : card number for option b }
+//
+// for pre-defined enemy, syntax:
+// var enemy_name=character("enemy_name", "", "enemy", strength, intelligence, dexterity, health, xp_reward); enemy_name.mainhand=weapon_name;
 
 // pre-defined enemies for this adventure
 
@@ -17,7 +20,7 @@ var squadcmdr=new character("Squad Commander", "", "enemy", 16, 16, 16, 16, 8); 
 var eliteguard=new character("Elite Guard", "", "enemy", 20, 20, 20, 20, 10); eliteguard.mainhand=autorifle;
 var guardcmdr=new character("Guard Commander", "", "enemy", 30, 30, 30, 30, 15); guardcmdr.mainhand=minihowitzer;
 
-// adeventure script card deck
+// adventure script card deck
 
 cards[0]=new card("story", "Mission 1: Destroy the power core", 1);
 cards[1]=new card("story", "At 0439 today, HQ Intel detected a spike in power signatures in a location thought to be an enemy base. Scouts were sent out to investigate and reported a strange power-generating installation 400km south of here. The installation bears no resemblance to existing power generators known to be used by the enemy, except for the massive power signature it's emanating. We don't know where it's getting its power from, we just know there's a lot of it. And that's not a good thing. Enemy presence is heavy but the scouts have found a way in where defenses are… less than elsewhere in the perimeter. HQ Command has decided to send a small surgical strike team to take out the installation and egress before the rest of the enemy defense can respond.", 2);
